@@ -1,0 +1,8 @@
+{
+  "name": "hello-python",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "gitbook serve ./ docs",
+    "build": "gitbook build ./ docs"
+  }
+}
