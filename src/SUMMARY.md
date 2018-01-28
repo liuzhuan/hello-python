@@ -1,4 +1,5 @@
 - [开胃菜](./appetite.md)
 - [使用解释器](./interpreter.md)
+- [非正式介绍](./introduction.md)
 
-https://docs.python.org/3.6/tutorial/interpreter.html
+https://docs.python.org/3.6/tutorial/introduction.html
