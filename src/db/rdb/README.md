@@ -107,8 +107,134 @@ SQLite 仅仅支持原生 SQL 以及多用户并发操作。
 [('duck', 5, 0.0), ('bear', 2, 1000.0), ('weasel', 1, 2000.0)]
 ```
 
+按照数目（count）排序，重新获得它们：
+
+```py
+>>> curs.execute('SELECT * FROM zoo ORDER BY count')
+<sqlite3.Cursor object at 0x10f50d730>
+>>> curs.fetchall()
+[('weasel', 1, 2000.0), ('bear', 2, 1000.0), ('duck', 5, 0.0)]
+```
+
+又需要按照降序得到它们：
+
+```py
+>>> curs.execute('SELECT * FROM zoo ORDER BY count DESC')
+<sqlite3.Cursor object at 0x10f50d730>
+>>> curs.fetchall()
+[('duck', 5, 0.0), ('bear', 2, 1000.0), ('weasel', 1, 2000.0)]
+```
+
+查找花费最多的动物：
+
+```py
+>>> curs.execute('''SELECT * FROM zoo WHERE damages = (SELECT MAX(damages) FROM zoo)''')
+<sqlite3.Cursor object at 0x10f50d730>
+>>> curs.fetchall()
+[('weasel', 1, 2000.0)]
+```
+
+如果已经打开了一个连接或游标，不需要时应该关掉它们：
+
+```py
+>>> curs.close()
+>>> conn.close()
+```
+
+## MySQL
+
+（未完待续。。。）
+
+## PostgreSQL
+
+（未完待续。。。）
+
+## SQLAlchemy
+
+DB-API 仅仅实现不同关系型数据库共有的部分。
+
+每种数据库实现的是包含自己特征和哲学的方言，许多库函数用于消除它们之间的差异，最著名的跨数据库 Python 库是 [SQLAlchemy][sqlalchemy]。
+
+它不在 Python 的标准库中，安装方法如下：
+
+```sh
+pip install sqlachemy
+```
+
+可以在以下层级使用 SQLAlchemy：
+
+- 底层负责处理数据库连接池、执行 SQL 命令以及返回结果，这和 DB-API 相似
+- 再往上是 SQL **表达式语言**，更像 Python 的 SQL 生成器
+- 较高级的是对象关系模型（ORM），使用 SQL 表达式语言，将应用程序代码和关系型数据结构结合起来。
+
+使用 SQLAlchemy 时，不需要导入驱动程序，初始化的字符串会做出分配，例如：
+
+```sh
+dialect + driver :// user : password @ host : port / dbname
+# dialect 数据库类型
+# driver 使用该数据库的特定驱动程序
+# user, password 数据库认证字符串
+# host, port 数据库服务器的位置
+# dbname 初始连接到服务器中的数据库
+```
+
+以下是常见方言和对应的驱动程序
+
+| 方言 | 驱动程序 |
+| --- | --- |
+| sqlite | pysqlite（可忽略） |
+| mysql | mysqlconnector |
+| mysql | pymysql |
+| mysql | oursql |
+| postgresql | psycopg2 |
+| postgresql | pypostgresql |
+
+### 1. 引擎层
+
+SQLAlchemey 底层可以实现多于基本 DB-API 的功能。
+
+以内置于 Python 的 SQLite 为例，连接字符串忽略 host, port, user 和 password。dbname 表示存储 SQLite 数据库的文件。
+
+如果省去 dbname，SQLite 会在内存创建数据库。
+
+以下是一个例子：
+
+```py
+>>> import sqlalchemy as sa
+
+>>> conn = sa.create_engine('sqlite://')
+>>> conn.execute('''CREATE Table zoo
+... (critter VARCHAR(20) PRIMARY KEY,
+... count INT,
+... damages FLOAT)''')
+<sqlalchemy.engine.result.ResultProxy object at 0x1108c47f0>
+
+>>> ins = 'INSERT INTO zoo (critter, count, damages) VALUES (?, ?, ?)'
+>>> conn.execute(ins, 'duck', 10, 0.0)
+<sqlalchemy.engine.result.ResultProxy object at 0x1108c4b00>
+>>> conn.execute(ins, 'bear', 2, 1000.0)
+<sqlalchemy.engine.result.ResultProxy object at 0x1108c4ba8>
+>>> conn.execute(ins, 'weasel', 1, 2000.0)
+<sqlalchemy.engine.result.ResultProxy object at 0x1108c4a20>
+
+>>> rows = conn.execute('SELECT * FROM zoo')
+
+# rows 不是一个列表，不能直接输出
+>>> print(rows)
+<sqlalchemy.engine.result.ResultProxy object at 0x1108c40f0>
+
+# 可以像列表一样迭代，每次得到其中一行
+>>> for row in rows:
+...     print(row)
+...
+('duck', 10, 0.0)
+('bear', 2, 1000.0)
+('weasel', 1, 2000.0)
+```
+
 ## REF
 - [《Python语言及其应用》][douban] - 8.4 关系型数据库，*Bill Lubanovic*，人民邮电出版社，2016年1月出版
 
 [douban]: https://book.douban.com/subject/26675127/
 [sqlite]: http://www.sqlite.org
+[sqlalchemy]: https://www.sqlalchemy.org
