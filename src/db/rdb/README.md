@@ -232,9 +232,52 @@ SQLAlchemey 底层可以实现多于基本 DB-API 的功能。
 ('weasel', 1, 2000.0)
 ```
 
+这个例子几乎和 SQLite DB-API 提到的示例是一样的。一个优势在于不需要导入数据库驱动程序，SQLAlchemy 从连接字符串（`connection string`）已经指定了。
+
+另外一个优势是 SQLAlchemy 的[连接池][pooling]。
+
+### 2. SQL 表达式语言
+
+SQL 表达式语言介绍了创建多种 SQL 操作的函数。相比引擎层，它能处理更多 SQL 方言的差异，对于关系型数据库应用是一种方便的中间层解决方案。
+
+下面介绍如何创建和管理数据表 zoo。
+
+```py
+>>> import sqlalchemy as sa
+>>> conn = sa.create_engine('sqlite://')
+
+>>> meta = sa.MetaData()
+# zoo 是连接 SQL 数据库和 Python 数据结构的一个对象
+>>> zoo = sa.Table('zoo', meta,
+... sa.Column('critter', sa.String, primary_key=True),
+... sa.Column('count', sa.Integer),
+... sa.Column('damages', sa.Float)
+... )
+>>> meta.create_all(conn)
+
+>>> conn.execute(zoo.insert(('bear', 2, 1000.0)))
+<sqlalchemy.engine.result.ResultProxy object at 0x10b94d3c8>
+>>> conn.execute(zoo.insert(('weasel', 1, 2000.0)))
+<sqlalchemy.engine.result.ResultProxy object at 0x10b94d630>
+>>> conn.execute(zoo.insert(('duck', 10, 0.0)))
+<sqlalchemy.engine.result.ResultProxy object at 0x10b857f60>
+
+# zoo.select() 等同于 SELECT * FROM zoo
+>>> result = conn.execute(zoo.select())
+>>> rows = result.fetchall()
+>>> print(rows)
+[('bear', 2, 1000.0), ('weasel', 1, 2000.0), ('duck', 10, 0.0)]
+>>>
+```
+
+### 3. 对象关系映射
+
+
+
 ## REF
 - [《Python语言及其应用》][douban] - 8.4 关系型数据库，*Bill Lubanovic*，人民邮电出版社，2016年1月出版
 
 [douban]: https://book.douban.com/subject/26675127/
 [sqlite]: http://www.sqlite.org
 [sqlalchemy]: https://www.sqlalchemy.org
+[pooling]: https://docs.sqlalchemy.org/en/latest/core/pooling.html
