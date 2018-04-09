@@ -4,3 +4,4 @@
   - [文件](./primitive/file/README.md)
 - 数据库
   - [关系型数据库](./db/rdb/README.md)
+- [日志记录](./log/README.md)
